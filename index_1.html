@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardiac arrest outcomes: icon arrays</title>
+<meta name="description" content="Icon-array figures of survival and functional outcome after cardiac arrest, drawn from published trial and registry cohorts.">
+<style>
+  :root{
+    --bg:#f7f5f0; --panel:#ffffff; --ink:#1f2328; --muted:#5d646c; --line:#dcd8cf;
+    --good:#2a6f97; --bad:#b5523b; --accent:#1f2328;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:28px 24px 8px;max-width:1240px;margin:0 auto}
+  h1{font-size:1.55rem;margin:0 0 4px;letter-spacing:-.01em}
+  header p{margin:0;color:var(--muted);max-width:70ch}
+  main{max-width:1240px;margin:0 auto;padding:16px 24px 48px;display:grid;
+    grid-template-columns:320px minmax(0,1fr);gap:24px;align-items:start}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  .controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;
+    position:sticky;top:16px}
+  @media (max-width:900px){.controls{position:static}}
+  .field{margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  label.lab,.lab{display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--muted);margin-bottom:6px}
+  select{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+    background:#fff;color:var(--ink)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#fff}
+  .seg label{flex:1;text-align:center;font-size:.9rem;padding:7px 6px;cursor:pointer;
+    border-left:1px solid var(--line);user-select:none}
+  .seg label:first-of-type{border-left:0}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg input:checked+label{background:var(--accent);color:#fff}
+  .seg input:focus-visible+label{outline:2px solid var(--good);outline-offset:-2px}
+  .seg.col{flex-direction:column}
+  .seg.col label{border-left:0;border-top:1px solid var(--line);text-align:left;padding:8px 10px}
+  .seg.col label:first-of-type{border-top:0}
+  .hint{font-size:.82rem;color:var(--muted);margin-top:6px}
+  .stage{min-width:0}
+  .figure{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;overflow:auto}
+  .figure svg{display:block;max-width:100%;height:auto;margin:0 auto}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+  button{font:inherit;font-size:.92rem;padding:8px 14px;border-radius:7px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer}
+  button:hover{border-color:#b9b4a9}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .about{margin-top:20px;font-size:.92rem;color:var(--muted)}
+  .about strong{color:var(--ink)}
+  .about p{margin:0 0 10px;max-width:80ch}
+  details{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+  summary{cursor:pointer;font-weight:600}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin-top:12px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  td.num{white-space:nowrap;font-variant-numeric:tabular-nums}
+  a{color:var(--good)}
+  .tablewrap{overflow:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cardiac arrest outcomes as icon arrays</h1>
+  <p>Pick a cohort and an outcome. Each icon is one person out of 100 (or 1,000), drawn from the published counts.</p>
+</header>
+
+<main>
+  <section class="controls" aria-label="Figure options">
+    <div class="field">
+      <label class="lab" for="trial">Cohort</label>
+      <select id="trial"></select>
+      <div class="hint" id="popHint"></div>
+    </div>
+    <div class="field">
+      <label class="lab" for="outcome">Outcome</label>
+      <select id="outcome"></select>
+    </div>
+    <div class="field">
+      <span class="lab">Count the people who…</span>
+      <div class="seg col" id="focusSeg"></div>
+    </div>
+    <div class="field">
+      <label class="lab" for="arm">Group</label>
+      <select id="arm"></select>
+    </div>
+    <div class="field">
+      <span class="lab">People shown</span>
+      <div class="seg">
+        <input type="radio" name="n" id="n100" value="100" checked><label for="n100">100</label>
+        <input type="radio" name="n" id="n1000" value="1000"><label for="n1000">1,000</label>
+      </div>
+      <div class="hint">Use 1,000 for rare outcomes (under about 5%).</div>
+    </div>
+    <div class="field">
+      <span class="lab">Arrangement</span>
+      <div class="seg">
+        <input type="radio" name="layout" id="lgroup" value="grouped" checked><label for="lgroup">Grouped</label>
+        <input type="radio" name="layout" id="lscatter" value="scattered"><label for="lscatter">Scattered</label>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lab">Icon</span>
+      <div class="seg">
+        <input type="radio" name="icon" id="iperson" value="person" checked><label for="iperson">Person</label>
+        <input type="radio" name="icon" id="idot" value="dot"><label for="idot">Dot</label>
+        <input type="radio" name="icon" id="isquare" value="square"><label for="isquare">Square</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="figure" id="figure"></div>
+    <div class="actions">
+      <button class="primary" id="dlPng">Download PNG</button>
+      <button id="dlSvg">Download SVG</button>
+      <button id="copyLink">Copy link to this figure</button>
+      <button id="reshuffle" hidden>Reshuffle</button>
+    </div>
+
+    <div class="about">
+      <p><strong>Reading these figures.</strong> Numbers are the raw counts reported in each publication, with a 95% Wilson confidence interval. Trial participants are selected (for example, most post-resuscitation trials enrolled comatose adults with a presumed cardiac cause who survived to ICU admission), so these are cohort averages, not a prognosis for an individual patient.</p>
+      <p><strong>Withdrawal of life-sustaining therapy.</strong> Most of the trials allowed withdrawal after protocolised prognostication, which shapes both mortality and the share of survivors with severe disability. The Korean (KORHN-PRO) and Italian (ProNeCA) cohorts come from settings where withdrawal was rare or absent; they are observational and differ in case mix, so compare with care.</p>
+      <p>Outcome definitions differ between trials (mRS, CPC, GOS-E, Disability Rating Scale) and are given in the legend of each figure. Where a count had to be derived (from a percentage or by subtraction), the figure says so.</p>
+    </div>
+
+    <details>
+      <summary>All data and sources</summary>
+      <div class="tablewrap"><table id="dataTable"></table></div>
+    </details>
+  </section>
+</main>
+
+<script>
+/* ------------------------------------------------------------------
+   DATA. Each outcome gives [events, denominator] per arm, as published.
+   "event" is the outcome as the paper reported it; "comp" its complement.
+   To add a trial, append an object here; nothing else needs to change.
+------------------------------------------------------------------- */
+const DIED = (t)=>({short:"Died", phrase:`had died ${t}`, good:false});
+const ALIVE = (t)=>({short:"Alive", phrase:`were alive ${t}`, good:true});
+
+const TRIALS = [
+ { id:"ttm2", name:"TTM2", year:2021, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Comatose adults after out-of-hospital cardiac arrest of presumed cardiac or unknown cause; 1,850 analysed.",
+   cite:"Dankiewicz J, et al. Hypothermia versus normothermia after out-of-hospital cardiac arrest. N Engl J Med 2021;384:2283-94.",
+   url:"https://doi.org/10.1056/NEJMoa2100591",
+   arms:[{id:"a",label:"Hypothermia (33°C)"},{id:"b",label:"Normothermia"}],
+   outcomes:[
+    {id:"death6m", kind:"Survival", label:"Death by 6 months",
+     event:DIED("by 6 months"), comp:ALIVE("at 6 months"), data:{a:[465,925], b:[446,925]}},
+    {id:"mrs6m", kind:"Functional outcome", label:"Poor functional outcome (mRS 4–6) at 6 months",
+     event:{short:"Died or moderately severe to severe disability (mRS 4–6)", phrase:"had died or had moderately severe or severe disability (mRS 4–6) at 6 months", good:false},
+     comp:{short:"Alive with no more than moderate disability (mRS 0–3)", phrase:"were alive with no more than moderate disability (mRS 0–3) at 6 months", good:true},
+     data:{a:[488,881], b:[479,866]}}
+   ]},
+ { id:"tame", name:"TAME", year:2023, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Comatose adults admitted to ICU after out-of-hospital cardiac arrest of presumed cardiac or unknown cause; 1,700 randomized.",
+   cite:"Eastwood G, et al. Mild hypercapnia or normocapnia after out-of-hospital cardiac arrest. N Engl J Med 2023;389:45-57.",
+   url:"https://doi.org/10.1056/NEJMoa2214552",
+   arms:[{id:"a",label:"Mild hypercapnia"},{id:"b",label:"Normocapnia"}],
+   outcomes:[
+    {id:"death6m", kind:"Survival", label:"Death within 6 months",
+     event:DIED("within 6 months"), comp:ALIVE("at 6 months"), data:{a:[393,816], b:[382,832]}},
+    {id:"gose6m", kind:"Functional outcome", label:"Favourable neurological outcome (GOS-E 5–8) at 6 months",
+     event:{short:"Alive with favourable outcome (GOS-E 5–8)", phrase:"were alive with a favourable neurological outcome (GOS-E 5–8) at 6 months", good:true},
+     comp:{short:"Died or unfavourable outcome (GOS-E 1–4)", phrase:"had died or had an unfavourable neurological outcome (GOS-E 1–4) at 6 months", good:false},
+     data:{a:[332,764], b:[350,784]}},
+    {id:"mrs6m", kind:"Functional outcome", label:"Poor functional outcome (mRS 4–6) at 6 months",
+     event:{short:"Died or moderately severe to severe disability (mRS 4–6)", phrase:"had died or had moderately severe or severe disability (mRS 4–6) at 6 months", good:false},
+     comp:{short:"Alive with no more than moderate disability (mRS 0–3)", phrase:"were alive with no more than moderate disability (mRS 0–3) at 6 months", good:true},
+     data:{a:[407,762], b:[400,779]}}
+   ]},
+ { id:"ttm", name:"TTM", year:2013, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Unconscious adults after out-of-hospital cardiac arrest of presumed cardiac cause; 939 analysed.",
+   cite:"Nielsen N, et al. Targeted temperature management at 33°C versus 36°C after cardiac arrest. N Engl J Med 2013;369:2197-206.",
+   url:"https://doi.org/10.1056/NEJMoa1310519",
+   arms:[{id:"a",label:"33°C"},{id:"b",label:"36°C"}],
+   outcomes:[
+    {id:"deathEnd", kind:"Survival", label:"Death by end of trial (at least 180 days' follow-up)",
+     event:DIED("by the end of the trial (at least 180 days)"), comp:ALIVE("at the end of the trial (at least 180 days)"),
+     data:{a:[235,473], b:[225,466]}}
+   ]},
+ { id:"boxbp", name:"BOX: blood-pressure targets", year:2022, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Comatose adults after out-of-hospital cardiac arrest of presumed cardiac cause, two Danish centres; 789 analysed.",
+   cite:"Kjaergaard J, et al. Blood-pressure targets in comatose survivors of cardiac arrest. N Engl J Med 2022;387:1456-66.",
+   url:"https://doi.org/10.1056/NEJMoa2208687",
+   arms:[{id:"a",label:"Higher MAP target (77 mm Hg)"},{id:"b",label:"Lower MAP target (63 mm Hg)"}],
+   outcomes:[
+    {id:"death90", kind:"Survival", label:"Death within 90 days",
+     event:DIED("within 90 days"), comp:ALIVE("at 90 days"), data:{a:[122,393], b:[114,396]}},
+    {id:"comp", kind:"Functional outcome", label:"Death or discharge with CPC 3–4 within 90 days",
+     event:{short:"Died, or discharged with severe disability or coma (CPC 3–4)", phrase:"had died or were discharged with severe disability or coma (CPC 3–4) within 90 days", good:false},
+     comp:{short:"Discharged alive with CPC 1–2", phrase:"were discharged alive with good function or moderate disability (CPC 1–2)", good:true},
+     data:{a:[133,393], b:[127,396]}}
+   ]},
+ { id:"boxo2", name:"BOX: oxygen targets", year:2022, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Same 789 patients as the BOX blood-pressure comparison, split by oxygenation target (2-by-2 factorial).",
+   cite:"Schmidt H, et al. Oxygen targets in comatose survivors of cardiac arrest. N Engl J Med 2022;387:1467-76.",
+   url:"https://doi.org/10.1056/NEJMoa2208686",
+   arms:[{id:"a",label:"Restrictive oxygen target"},{id:"b",label:"Liberal oxygen target"}],
+   outcomes:[
+    {id:"death90", kind:"Survival", label:"Death within 90 days",
+     event:DIED("within 90 days"), comp:ALIVE("at 90 days"), data:{a:[113,394], b:[123,395]}},
+    {id:"comp", kind:"Functional outcome", label:"Death or discharge with CPC 3–4 within 90 days",
+     event:{short:"Died, or discharged with severe disability or coma (CPC 3–4)", phrase:"had died or were discharged with severe disability or coma (CPC 3–4) within 90 days", good:false},
+     comp:{short:"Discharged alive with CPC 1–2", phrase:"were discharged alive with good function or moderate disability (CPC 1–2)", good:true},
+     data:{a:[126,394], b:[134,395]}}
+   ]},
+ { id:"capital", name:"CAPITAL CHILL", year:2021, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Comatose adults after out-of-hospital cardiac arrest, single Canadian cardiac centre; 367 analysed.",
+   cite:"Le May M, et al. Effect of moderate vs mild therapeutic hypothermia on mortality and neurologic outcomes in comatose survivors of out-of-hospital cardiac arrest. JAMA 2021;326:1494-503.",
+   url:"https://pubmed.ncbi.nlm.nih.gov/34665203/",
+   arms:[{id:"a",label:"31°C"},{id:"b",label:"34°C"}],
+   outcomes:[
+    {id:"death180", kind:"Survival", label:"Death by 180 days", derived:true,
+     event:DIED("by 180 days"), comp:ALIVE("at 180 days"), data:{a:[80,184], b:[75,183]}},
+    {id:"comp180", kind:"Functional outcome", label:"Death or poor neurological outcome (DRS > 5) at 180 days",
+     event:{short:"Died or poor neurological outcome (Disability Rating Scale > 5)", phrase:"had died or had a poor neurological outcome (Disability Rating Scale > 5) at 180 days", good:false},
+     comp:{short:"Alive with Disability Rating Scale 0–5", phrase:"were alive without a poor neurological outcome (Disability Rating Scale 0–5) at 180 days", good:true},
+     data:{a:[89,184], b:[83,183]}}
+   ]},
+ { id:"hyperion", name:"HYPERION", year:2019, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Comatose adults in ICU after cardiac arrest with a nonshockable rhythm (in- or out-of-hospital), France; 581 analysed.",
+   cite:"Lascarrou J-B, et al. Targeted temperature management for cardiac arrest with nonshockable rhythm. N Engl J Med 2019;381:2327-37.",
+   url:"https://doi.org/10.1056/NEJMoa1906661",
+   arms:[{id:"a",label:"Hypothermia (33°C)"},{id:"b",label:"Normothermia (37°C)"}],
+   outcomes:[
+    {id:"death90", kind:"Survival", label:"Death by day 90",
+     event:DIED("by day 90"), comp:ALIVE("at day 90"), data:{a:[231,284], b:[247,297]}},
+    {id:"cpc90", kind:"Functional outcome", label:"Favourable neurological outcome (CPC 1–2) at day 90",
+     event:{short:"Alive with favourable outcome (CPC 1–2)", phrase:"were alive with a favourable neurological outcome (CPC 1–2) at day 90", good:true},
+     comp:{short:"Died or CPC 3–5", phrase:"had died or had severe disability, coma or vegetative state (CPC 3–5) at day 90", good:false},
+     data:{a:[29,284], b:[17,297]}}
+   ]},
+ { id:"tomahawk", name:"TOMAHAWK", year:2021, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Adults resuscitated from out-of-hospital cardiac arrest of possible coronary origin, without ST elevation; 530 analysed.",
+   cite:"Desch S, et al. Angiography after out-of-hospital cardiac arrest without ST-segment elevation. N Engl J Med 2021;385:2544-53. One-year data: Desch S, et al. JAMA Cardiol 2023.",
+   url:"https://doi.org/10.1056/NEJMoa2101909",
+   arms:[{id:"a",label:"Immediate angiography"},{id:"b",label:"Delayed or selective angiography"}],
+   outcomes:[
+    {id:"death30", kind:"Survival", label:"Death by 30 days",
+     event:DIED("by 30 days"), comp:ALIVE("at 30 days"), data:{a:[143,265], b:[122,265]}},
+    {id:"death1y", kind:"Survival", label:"Death by 1 year",
+     event:DIED("by 1 year"), comp:ALIVE("at 1 year"), data:{a:[161,265], b:[144,265]}},
+    {id:"comp30", kind:"Functional outcome", label:"Death or severe neurological deficit at 30 days",
+     event:{short:"Died or severe neurological deficit", phrase:"had died or had a severe neurological deficit at 30 days", good:false},
+     comp:{short:"Alive without severe neurological deficit", phrase:"were alive without a severe neurological deficit at 30 days", good:true},
+     data:{a:[164,255], b:[138,248]}}
+   ]},
+ { id:"coact", name:"COACT", year:2019, group:"Comatose after resuscitation (ICU cohorts)",
+   pop:"Adults resuscitated from out-of-hospital cardiac arrest with a shockable rhythm and no ST-elevation MI; 538 analysed.",
+   cite:"Lemkes JS, et al. Coronary angiography after cardiac arrest without ST-segment elevation. N Engl J Med 2019;380:1397-407.",
+   url:"https://doi.org/10.1056/NEJMoa1816897",
+   arms:[{id:"a",label:"Immediate angiography"},{id:"b",label:"Delayed angiography"}],
+   outcomes:[
+    {id:"alive90", kind:"Survival", label:"Survival at 90 days",
+     event:ALIVE("at 90 days"), comp:DIED("by 90 days"), data:{a:[176,273], b:[178,265]}}
+   ]},
+ { id:"korhn", name:"KORHN-PRO, South Korea", year:2020, group:"Little or no withdrawal of life-sustaining therapy (observational cohorts)",
+   pop:"Comatose adults treated with targeted temperature management after out-of-hospital cardiac arrest, 22 Korean hospitals, 2015–2018; 1,354 with 6-month outcome. Registry, not a trial. Active withdrawal of life-sustaining therapy was legally prohibited in South Korea until February 2018.",
+   cite:"Korean Hypothermia Network investigators. Outcome and status of postcardiac arrest care in Korea: results from the Korean Hypothermia Network prospective registry. Clin Exp Emerg Med 2020.",
+   url:"https://pmc.ncbi.nlm.nih.gov/articles/PMC7808836",
+   arms:[{id:"a",label:"Whole cohort"}],
+   outcomes:[
+    {id:"alive6m", kind:"Survival", label:"Survival at 6 months",
+     event:ALIVE("at 6 months"), comp:DIED("by 6 months"), data:{a:[550,1354]}},
+    {id:"cpc6m", kind:"Functional outcome", label:"Good neurological outcome (CPC 1–2) at 6 months",
+     event:{short:"Alive with good outcome (CPC 1–2)", phrase:"were alive with a good neurological outcome (CPC 1–2) at 6 months", good:true},
+     comp:{short:"Died or CPC 3–4", phrase:"had died or had severe disability, coma or vegetative state (CPC 3–5) at 6 months", good:false},
+     data:{a:[413,1354]}},
+    {id:"cpc34", kind:"Functional outcome", label:"Alive with severe disability or unresponsive (CPC 3–4) at 6 months", derived:true,
+     event:{short:"Alive with severe disability, coma or vegetative state (CPC 3–4)", phrase:"were alive with severe disability, coma or vegetative state (CPC 3–4) at 6 months", good:false},
+     comp:{short:"Everyone else (died, or alive with CPC 1–2)", phrase:"had either died or were alive with a good outcome (CPC 1–2) at 6 months", good:true},
+     data:{a:[137,1354]}}
+   ]},
+ { id:"proneca", name:"ProNeCA, Italy", year:2019, group:"Little or no withdrawal of life-sustaining therapy (observational cohorts)",
+   pop:"Adults comatose after cardiac arrest who had EEG, SEP and brain CT within 24 hours, Italian ICUs; 346 with 6-month outcome. Prognostication cohort, not a trial. No patient underwent withdrawal of life-sustaining therapy.",
+   cite:"Scarpino M, et al. Neurophysiology and neuroimaging accurately predict poor neurological outcome within 24 hours after cardiac arrest: the ProNeCA prospective multicentre prognostication study. Resuscitation 2019;143:115-23.",
+   url:"https://www.resuscitationjournal.com/article/S0300-9572(19)30555-6/abstract",
+   arms:[{id:"a",label:"Whole cohort"}],
+   outcomes:[
+    {id:"death6m", kind:"Survival", label:"Death by 6 months", derived:true,
+     event:DIED("by 6 months"), comp:ALIVE("at 6 months"), data:{a:[155,346]}},
+    {id:"cpc6m", kind:"Functional outcome", label:"Poor neurological outcome (CPC 4–5) at 6 months",
+     event:{short:"Died or unresponsive wakefulness state (CPC 4–5)", phrase:"had died or were in an unresponsive wakefulness (vegetative) state (CPC 4–5) at 6 months", good:false},
+     comp:{short:"Alive and conscious (CPC 1–3, includes severe disability)", phrase:"were alive and conscious (CPC 1–3, which includes severe disability) at 6 months", good:true},
+     data:{a:[223,346]}},
+    {id:"uws6m", kind:"Functional outcome", label:"Alive in unresponsive wakefulness state (CPC 4) at 6 months",
+     event:{short:"Alive in unresponsive wakefulness (vegetative) state (CPC 4)", phrase:"were alive in an unresponsive wakefulness (vegetative) state (CPC 4) at 6 months", good:false},
+     comp:{short:"Everyone else (died, or alive and conscious)", phrase:"had either died or were alive and conscious (CPC 1–3) at 6 months", good:true},
+     data:{a:[68,346]}}
+   ]},
+ { id:"haca", name:"HACA-IHCA", year:2022, group:"In-hospital cardiac arrest",
+   pop:"Adults comatose after in-hospital cardiac arrest, Germany; 238 analysed. Stopped early for futility.",
+   cite:"Wolfrum S, et al. Temperature control after in-hospital cardiac arrest: a randomized clinical trial. Circulation 2022;146:1357-66.",
+   url:"https://doi.org/10.1161/CIRCULATIONAHA.122.060106",
+   arms:[{id:"a",label:"Hypothermia (32–34°C)"},{id:"b",label:"Normothermia"}],
+   outcomes:[
+    {id:"deathHosp", kind:"Survival", label:"Death before hospital discharge",
+     event:DIED("before hospital discharge"), comp:{short:"Survived to discharge", phrase:"survived to hospital discharge", good:true},
+     data:{a:[75,120], b:[68,118]}},
+    {id:"death180", kind:"Survival", label:"Death by day 180",
+     event:DIED("by day 180"), comp:ALIVE("at day 180"), data:{a:[87,120], b:[84,118]}},
+    {id:"cpc180", kind:"Functional outcome", label:"Favourable functional outcome (CPC 1–2) at day 180", derived:true,
+     event:{short:"Alive with favourable outcome (CPC 1–2)", phrase:"were alive with a favourable functional outcome (CPC 1–2) at day 180", good:true},
+     comp:{short:"Died or CPC 3–5", phrase:"had died or had severe disability, coma or vegetative state (CPC 3–5) at day 180", good:false},
+     data:{a:[27,120], b:[28,118]}}
+   ]},
+ { id:"paramedic2", name:"PARAMEDIC2", year:2018, group:"All attempted resuscitations (pre-hospital cohorts)",
+   pop:"Adults in out-of-hospital cardiac arrest receiving advanced life support from UK paramedics; 8,014 analysed. Includes people who never regained a pulse.",
+   cite:"Perkins GD, et al. A randomized trial of epinephrine in out-of-hospital cardiac arrest. N Engl J Med 2018;379:711-21.",
+   url:"https://doi.org/10.1056/NEJMoa1806842",
+   arms:[{id:"a",label:"Epinephrine"},{id:"b",label:"Placebo"}],
+   outcomes:[
+    {id:"disch", kind:"Survival", label:"Survival to hospital discharge",
+     event:{short:"Survived to discharge", phrase:"survived to hospital discharge", good:true}, comp:DIED("before hospital discharge"),
+     data:{a:[128,4009], b:[91,3995]}},
+    {id:"alive30", kind:"Survival", label:"Survival at 30 days",
+     event:ALIVE("at 30 days"), comp:DIED("by 30 days"), data:{a:[130,4012], b:[94,3995]}},
+    {id:"alive3m", kind:"Survival", label:"Survival at 3 months",
+     event:ALIVE("at 3 months"), comp:DIED("by 3 months"), data:{a:[121,4009], b:[86,3991]}},
+    {id:"mrsDisch", kind:"Functional outcome", label:"Favourable neurological outcome (mRS 0–3) at discharge",
+     event:{short:"Survived to discharge with mRS 0–3", phrase:"survived to hospital discharge with a favourable neurological outcome (mRS 0–3)", good:true},
+     comp:{short:"Died or mRS 4–5 at discharge", phrase:"had died or had severe disability (mRS 4–5) at hospital discharge", good:false},
+     data:{a:[87,4007], b:[74,3994]}},
+    {id:"mrs3m", kind:"Functional outcome", label:"Favourable neurological outcome (mRS 0–3) at 3 months",
+     event:{short:"Alive at 3 months with mRS 0–3", phrase:"were alive with a favourable neurological outcome (mRS 0–3) at 3 months", good:true},
+     comp:{short:"Died or mRS 4–5 at 3 months", phrase:"had died or had severe disability (mRS 4–5) at 3 months", good:false},
+     data:{a:[82,3986], b:[63,3979]}}
+   ]},
+ { id:"paramedic3", name:"PARAMEDIC-3", year:2024, group:"All attempted resuscitations (pre-hospital cohorts)",
+   pop:"Adults in out-of-hospital cardiac arrest needing vascular access for drugs, UK ambulance services; 6,082 randomized. Includes people who never regained a pulse.",
+   cite:"Couper K, et al. A randomized trial of drug route in out-of-hospital cardiac arrest. N Engl J Med 2025;392:336-48.",
+   url:"https://doi.org/10.1056/NEJMoa2407780",
+   arms:[{id:"a",label:"Intraosseous first"},{id:"b",label:"Intravenous first"}],
+   outcomes:[
+    {id:"rosc", kind:"Survival", label:"Return of spontaneous circulation (any)",
+     event:{short:"Regained a pulse (ROSC)", phrase:"regained a pulse at some point (return of spontaneous circulation)", good:true},
+     comp:{short:"Never regained a pulse", phrase:"never regained a pulse", good:false},
+     data:{a:[1092,3031], b:[1186,3035]}},
+    {id:"alive30", kind:"Survival", label:"Survival at 30 days",
+     event:ALIVE("at 30 days"), comp:DIED("by 30 days"), data:{a:[137,3030], b:[155,3034]}},
+    {id:"mrsDisch", kind:"Functional outcome", label:"Favourable neurological outcome (mRS 0–3) at discharge",
+     event:{short:"Survived to discharge with mRS 0–3", phrase:"survived to hospital discharge with a favourable neurological outcome (mRS 0–3)", good:true},
+     comp:{short:"Died or mRS 4–5 at discharge", phrase:"had died or had severe disability (mRS 4–5) at hospital discharge", good:false},
+     data:{a:[80,2994], b:[85,2986]}}
+   ]}
+];
+
+/* ------------------------------ helpers ------------------------------ */
+const $ = (id)=>document.getElementById(id);
+const esc = (s)=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const COLORS = {good:"#2a6f97", bad:"#b5523b"};
+const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+function wilson(k,n){
+  const z=1.959964, p=k/n, d=1+z*z/n;
+  const c=(p+z*z/(2*n))/d, h=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;
+  return [Math.max(0,c-h), Math.min(1,c+h)];
+}
+function wrap(text, maxChars){
+  const words=text.split(/\s+/), lines=[]; let cur="";
+  for(const w of words){
+    if(cur && (cur+" "+w).length>maxChars){ lines.push(cur); cur=w; }
+    else cur = cur ? cur+" "+w : w;
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const pct = (x,d=1)=> (100*x).toFixed(d)+"%";
+const fmt = (n)=> n.toLocaleString("en-US");
+
+/* ------------------------------ state ------------------------------ */
+const state = {t:"ttm2", o:"death6m", a:"all", n:100, l:"grouped", i:"person", f:"event", seed:7};
+
+function readHash(){
+  const q=new URLSearchParams(location.hash.slice(1));
+  for(const k of ["t","o","a","l","i","f"]) if(q.get(k)) state[k]=q.get(k);
+  if(q.get("n")) state.n = q.get("n")==="1000"?1000:100;
+  if(q.get("s")) state.seed = parseInt(q.get("s"),10)||7;
+  normalise();
+}
+function writeHash(){
+  const q=new URLSearchParams({t:state.t,o:state.o,a:state.a,n:state.n,l:state.l,i:state.i,f:state.f});
+  if(state.l==="scattered") q.set("s",state.seed);
+  history.replaceState(null,"","#"+q.toString());
+}
+function trial(){ return TRIALS.find(x=>x.id===state.t); }
+function outcome(){ return trial().outcomes.find(x=>x.id===state.o); }
+function normalise(){
+  if(!TRIALS.some(x=>x.id===state.t)) state.t=TRIALS[0].id;
+  const t=trial();
+  if(!t.outcomes.some(x=>x.id===state.o)) state.o=t.outcomes[0].id;
+  if(t.arms.length===1 || !["all","compare",...t.arms.map(a=>a.id)].includes(state.a)) state.a="all";
+  if(!["grouped","scattered"].includes(state.l)) state.l="grouped";
+  if(!["person","dot","square"].includes(state.i)) state.i="person";
+  if(!["event","comp"].includes(state.f)) state.f="event";
+}
+
+/* ------------------------------ figure ------------------------------ */
+function panelsFor(){
+  const t=trial(), o=outcome();
+  const mk=(label,k,n)=>({label,k,n});
+  const pooled=()=>{ let k=0,n=0; for(const a of t.arms){ k+=o.data[a.id][0]; n+=o.data[a.id][1]; }
+    return mk("All participants (both groups combined)",k,n); };
+  if(t.arms.length===1){ const a=t.arms[0]; return [mk(a.label,o.data[a.id][0],o.data[a.id][1])]; }
+  if(state.a==="all") return [pooled()];
+  if(state.a==="compare") return t.arms.map(a=>mk(a.label,o.data[a.id][0],o.data[a.id][1]));
+  const a=t.arms.find(x=>x.id===state.a);
+  return [mk(a.label,o.data[a.id][0],o.data[a.id][1])];
+}
+
+function iconSvg(x,y,c,fill){
+  if(state.i==="dot") return `<circle cx="${(x+c/2).toFixed(1)}" cy="${(y+c/2).toFixed(1)}" r="${(c*0.38).toFixed(1)}" fill="${fill}"/>`;
+  if(state.i==="square") return `<rect x="${(x+c*0.1).toFixed(1)}" y="${(y+c*0.1).toFixed(1)}" width="${(c*0.8).toFixed(1)}" height="${(c*0.8).toFixed(1)}" rx="${(c*0.12).toFixed(1)}" fill="${fill}"/>`;
+  const hx=x+c/2, hy=y+c*0.2, hr=c*0.15, bw=c*0.46, bx=x+(c-bw)/2, by=y+c*0.4, bh=c*0.54;
+  return `<circle cx="${hx.toFixed(1)}" cy="${hy.toFixed(1)}" r="${hr.toFixed(1)}" fill="${fill}"/>`+
+         `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="${(c*0.16).toFixed(1)}" fill="${fill}"/>`;
+}
+
+function buildSvg(){
+  const t=trial(), o=outcome(), N=state.n, panels=panelsFor(), two=panels.length===2;
+  const focus = state.f==="event" ? o.event : o.comp;
+  const other = state.f==="event" ? o.comp : o.event;
+  const cFocus = COLORS[focus.good?"good":"bad"], cOther = COLORS[other.good?"good":"bad"];
+
+  // grid geometry
+  let cols, rows, cell;
+  if(N===100){ cols=10; rows=10; cell= two?34:38; }
+  else if(two){ cols=25; rows=40; cell=14; }
+  else { cols=40; rows=25; cell=17; }
+  const every = N===100?5:10, gap = cell*0.35;
+  const gx=(i)=> i*cell + Math.floor(i/every)*gap;
+  const gridW = gx(cols-1)+cell, gridH = gx(rows-1)+cell;
+
+  const M=36, panelW=Math.max(gridW, two?400:560), between=56;
+  const W = M*2 + panelW*panels.length + between*(panels.length-1);
+  const out=[]; let y=M;
+
+  // title
+  const titleLines = wrap(`${o.label}: ${t.name} (${t.year})`, Math.floor((W-2*M)/10.2));
+  y+=18;
+  for(const ln of titleLines){ out.push(`<text x="${M}" y="${y}" font-size="20" font-weight="700" fill="#1f2328">${esc(ln)}</text>`); y+=26; }
+  y-=6;
+  for(const ln of wrap(t.pop, Math.floor((W-2*M)/6.6))){ out.push(`<text x="${M}" y="${y}" font-size="13" fill="#5d646c">${esc(ln)}</text>`); y+=18; }
+  y+=14;
+
+  // panels
+  const top=y; let maxBottom=top; const aria=[];
+  panels.forEach((p,pi)=>{
+    const px = M + pi*(panelW+between); let py=top;
+    const kFocusRaw = state.f==="event" ? p.k : p.n-p.k;
+    const prop = kFocusRaw/p.n, kIcons = Math.round(prop*N);
+    const ci = wilson(kFocusRaw,p.n);
+
+    for(const ln of wrap(p.label, Math.floor(panelW/8))){ py+=15;
+      out.push(`<text x="${px}" y="${py}" font-size="15" font-weight="600" fill="#1f2328">${esc(ln)}</text>`); py+=5; }
+    py+=10;
+
+    // icons
+    const flags = Array.from({length:N},(_,i)=> i<kIcons);
+    if(state.l==="scattered"){
+      const rnd=mulberry32(state.seed*1000+pi+N);
+      for(let i=N-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [flags[i],flags[j]]=[flags[j],flags[i]]; }
+    }
+    const ox = px + (two?0:0), g=[];
+    for(let i=0;i<N;i++){
+      const r=Math.floor(i/cols), c=i%cols;
+      g.push(iconSvg(ox+gx(c), py+gx(r), cell, flags[i]?cFocus:cOther));
+    }
+    out.push(`<g>${g.join("")}</g>`);
+    py += gridH + 30;
+
+    const head = `${fmt(kIcons)} in ${fmt(N)} ${focus.phrase}`;
+    const exactK = prop>0 && kIcons===0 ? "Fewer than 1" : null;
+    const headTxt = exactK ? `${exactK} in ${fmt(N)} ${focus.phrase}` : head;
+    for(const ln of wrap(headTxt, Math.floor(panelW/9.2))){
+      out.push(`<text x="${px}" y="${py}" font-size="18" font-weight="700" fill="${cFocus}">${esc(ln)}</text>`); py+=24; }
+    py+=0;
+    out.push(`<text x="${px}" y="${py}" font-size="13" fill="#5d646c">${esc(`${fmt(kFocusRaw)} of ${fmt(p.n)} (${pct(prop)}; 95% CI ${pct(ci[0])} to ${pct(ci[1])})`)}</text>`);
+    py+=10;
+    aria.push(`${p.label}: ${headTxt}; ${kFocusRaw} of ${p.n}.`);
+    maxBottom=Math.max(maxBottom,py);
+  });
+  y = maxBottom + 22;
+
+  // legend
+  out.push(`<line x1="${M}" x2="${W-M}" y1="${y}" y2="${y}" stroke="#dcd8cf"/>`); y+=24;
+  const legendItem=(col,label)=>{
+    const lines=wrap(label, Math.floor((W-2*M-28)/7.2));
+    out.push(iconSvg(M, y-15, 20, col));
+    lines.forEach((ln,i)=> out.push(`<text x="${M+28}" y="${y+i*18}" font-size="14" fill="#1f2328">${esc(ln)}</text>`));
+    y += lines.length*18 + 8;
+  };
+  legendItem(cFocus, focus.short);
+  legendItem(cOther, other.short);
+  y+=6;
+
+  // footnotes
+  const notes=[`Each icon is 1 of ${fmt(N)} people; icon counts are rounded. Source: ${t.cite}`];
+  if(o.derived) notes.push("Counts for this outcome were derived from other published figures (percentages or subtraction), not quoted directly.");
+  if(state.a==="all" && t.arms.length>1) notes.push("Both randomized groups are pooled; this is a description of the cohort, not a treatment comparison.");
+  for(const n of notes) for(const ln of wrap(n, Math.floor((W-2*M)/5.9))){
+    out.push(`<text x="${M}" y="${y}" font-size="11.5" fill="#5d646c">${esc(ln)}</text>`); y+=16; }
+  const H = y + M - 14;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria.join(" "))}" font-family='${FONT}'>`+
+         `<rect width="${W}" height="${H}" fill="#ffffff"/>${out.join("")}</svg>`;
+}
+
+/* ------------------------------ UI ------------------------------ */
+function fillTrials(){
+  const sel=$("trial"); sel.innerHTML="";
+  const groups=[...new Set(TRIALS.map(t=>t.group))];
+  for(const g of groups){
+    const og=document.createElement("optgroup"); og.label=g;
+    for(const t of TRIALS.filter(x=>x.group===g)){
+      const op=document.createElement("option"); op.value=t.id; op.textContent=`${t.name} (${t.year})`; og.appendChild(op); }
+    sel.appendChild(og);
+  }
+}
+function fillDependent(){
+  const t=trial();
+  $("popHint").textContent=t.pop;
+  const os=$("outcome"); os.innerHTML="";
+  for(const kind of ["Survival","Functional outcome"]){
+    const list=t.outcomes.filter(o=>o.kind===kind); if(!list.length) continue;
+    const og=document.createElement("optgroup"); og.label=kind;
+    for(const o of list){ const op=document.createElement("option"); op.value=o.id; op.textContent=o.label; og.appendChild(op); }
+    os.appendChild(og);
+  }
+  const as=$("arm"); as.innerHTML="";
+  const add=(v,l)=>{ const op=document.createElement("option"); op.value=v; op.textContent=l; as.appendChild(op); };
+  if(t.arms.length===1){ add("all","Whole cohort"); as.disabled=true; }
+  else { as.disabled=false; add("all","All participants (pooled)"); add("compare","Compare groups side by side");
+    for(const a of t.arms) add(a.id, a.label+" only"); }
+  fillFocus();
+}
+function fillFocus(){
+  const o=outcome(), seg=$("focusSeg");
+  seg.innerHTML =
+    `<input type="radio" name="focus" id="fEvent" value="event"><label for="fEvent">${esc(o.event.short)}</label>`+
+    `<input type="radio" name="focus" id="fComp" value="comp"><label for="fComp">${esc(o.comp.short)}</label>`;
+  seg.querySelectorAll("input").forEach(el=>el.addEventListener("change",()=>{ state.f=el.value; render(); }));
+}
+function syncControls(){
+  $("trial").value=state.t; $("outcome").value=state.o; $("arm").value=state.a;
+  document.querySelector(`input[name=n][value="${state.n}"]`).checked=true;
+  document.querySelector(`input[name=layout][value="${state.l}"]`).checked=true;
+  document.querySelector(`input[name=icon][value="${state.i}"]`).checked=true;
+  document.querySelector(`input[name=focus][value="${state.f}"]`).checked=true;
+  $("reshuffle").hidden = state.l!=="scattered";
+}
+function render(){
+  normalise(); syncControls();
+  $("figure").innerHTML=buildSvg();
+  writeHash();
+}
+function fileName(ext){ return `${state.t}-${state.o}-${state.a}-${state.n}.${ext}`; }
+function download(blob,name){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function buildTable(){
+  const rows=[`<tr><th>Trial</th><th>Outcome</th><th>Group</th><th>Events / n</th><th>%</th></tr>`];
+  for(const t of TRIALS) for(const o of t.outcomes) t.arms.forEach((a,i)=>{
+    const [k,n]=o.data[a.id];
+    rows.push(`<tr><td>${i===0?`<a href="${t.url}" target="_blank" rel="noopener">${esc(t.name)} (${t.year})</a>`:""}</td>`+
+      `<td>${i===0?esc(o.label)+(o.derived?" *":""):""}</td><td>${esc(a.label)}</td>`+
+      `<td class="num">${fmt(k)} / ${fmt(n)}</td><td class="num">${pct(k/n)}</td></tr>`);
+  });
+  rows.push(`<tr><td colspan="5">* Counts derived from other published figures (percentages or subtraction).</td></tr>`);
+  $("dataTable").innerHTML=rows.join("");
+}
+
+function init(){
+  fillTrials(); readHash(); fillDependent(); buildTable();
+  $("trial").addEventListener("change",e=>{ state.t=e.target.value; state.o=trial().outcomes[0].id; state.a="all"; state.f="event"; fillDependent(); render(); });
+  $("outcome").addEventListener("change",e=>{ state.o=e.target.value; state.f="event"; fillFocus(); render(); });
+  $("arm").addEventListener("change",e=>{ state.a=e.target.value; render(); });
+  document.querySelectorAll("input[name=n]").forEach(el=>el.addEventListener("change",()=>{ state.n=+el.value; render(); }));
+  document.querySelectorAll("input[name=layout]").forEach(el=>el.addEventListener("change",()=>{ state.l=el.value; render(); }));
+  document.querySelectorAll("input[name=icon]").forEach(el=>el.addEventListener("change",()=>{ state.i=el.value; render(); }));
+  $("reshuffle").addEventListener("click",()=>{ state.seed=1+Math.floor(Math.random()*9999); render(); });
+  $("dlSvg").addEventListener("click",()=> download(new Blob([buildSvg()],{type:"image/svg+xml"}), fileName("svg")));
+  $("dlPng").addEventListener("click",()=>{
+    const svg=buildSvg(), img=new Image(), scale=3;
+    img.onload=()=>{ const c=document.createElement("canvas"); c.width=img.width*scale; c.height=img.height*scale;
+      const ctx=c.getContext("2d"); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+      c.toBlob(b=>download(b,fileName("png")),"image/png"); };
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  });
+  $("copyLink").addEventListener("click",async()=>{
+    const b=$("copyLink"), old=b.textContent;
+    try{ await navigator.clipboard.writeText(location.href); b.textContent="Link copied"; }
+    catch(e){ b.textContent="Copy the address bar"; }
+    setTimeout(()=>b.textContent=old,1600);
+  });
+  window.addEventListener("hashchange",()=>{ readHash(); fillDependent(); render(); });
+  render();
+}
+init();
+</script>
+</body>
+</html>
